@@ -222,85 +222,71 @@ susan_thin(r, mid, x_size, y_size)
 						l[5] *= 3;
 						l[7] *= 3;
 						l[8] *= 4;
-					} else {
-						if (mid[(i - 1) * x_size + j] < 8) {
-							l[1] = 0;
-							l[0] = 0;
-							l[2] = 0;
-							l[3] *= 2;
-							l[5] *= 2;
-							l[6] *= 3;
-							l[8] *= 3;
-							l[7] *= 4;
-						} else {
-							if (mid[(i - 1) * x_size + j + 1] < 8) {
-								l[2] = 0;
-								l[1] = 0;
-								l[5] = 0;
-								l[0] *= 2;
-								l[8] *= 2;
-								l[3] *= 3;
-								l[7] *= 3;
-								l[6] *= 4;
-							} else {
-								if (mid[(i) * x_size + j - 1] < 8) {
-									l[3] = 0;
-									l[0] = 0;
-									l[6] = 0;
-									l[1] *= 2;
-									l[7] *= 2;
-									l[2] *= 3;
-									l[8] *= 3;
-									l[5] *= 4;
-								} else {
-									if (mid[(i) * x_size + j + 1] < 8) {
-										l[5] = 0;
-										l[2] = 0;
-										l[8] = 0;
-										l[1] *= 2;
-										l[7] *= 2;
-										l[0] *= 3;
-										l[6] *= 3;
-										l[3] *= 4;
-									} else {
-										if (mid[(i + 1) * x_size + j - 1] < 8) {
-											l[6] = 0;
-											l[3] = 0;
-											l[7] = 0;
-											l[0] *= 2;
-											l[8] *= 2;
-											l[1] *= 3;
-											l[5] *= 3;
-											l[2] *= 4;
-										} else {
-											if (mid[(i + 1) * x_size + j] < 8) {
-												l[7] = 0;
-												l[6] = 0;
-												l[8] = 0;
-												l[3] *= 2;
-												l[5] *= 2;
-												l[0] *= 3;
-												l[2] *= 3;
-												l[1] *= 4;
-											} else {
-												if (mid[(i + 1) * x_size + j + 1]
-														< 8) {
-													l[8] = 0;
-													l[5] = 0;
-													l[7] = 0;
-													l[6] *= 2;
-													l[2] *= 2;
-													l[1] *= 3;
-													l[3] *= 3;
-													l[0] *= 4;
-												}
-											}
-										}
-									}
-								}
-							}
-						}
+					} else if (mid[(i - 1) * x_size + j] < 8) {
+						l[1] = 0;
+						l[0] = 0;
+						l[2] = 0;
+						l[3] *= 2;
+						l[5] *= 2;
+						l[6] *= 3;
+						l[8] *= 3;
+						l[7] *= 4;
+					} else if (mid[(i - 1) * x_size + j + 1] < 8) {
+						l[2] = 0;
+						l[1] = 0;
+						l[5] = 0;
+						l[0] *= 2;
+						l[8] *= 2;
+						l[3] *= 3;
+						l[7] *= 3;
+						l[6] *= 4;
+					} else if (mid[(i) * x_size + j - 1] < 8) {
+						l[3] = 0;
+						l[0] = 0;
+						l[6] = 0;
+						l[1] *= 2;
+						l[7] *= 2;
+						l[2] *= 3;
+						l[8] *= 3;
+						l[5] *= 4;
+					} else if (mid[(i) * x_size + j + 1] < 8) {
+						l[5] = 0;
+						l[2] = 0;
+						l[8] = 0;
+						l[1] *= 2;
+						l[7] *= 2;
+						l[0] *= 3;
+						l[6] *= 3;
+						l[3] *= 4;
+					} else if (mid[(i + 1) * x_size + j - 1] < 8) {
+						l[6] = 0;
+						l[3] = 0;
+						l[7] = 0;
+						l[0] *= 2;
+						l[8] *= 2;
+						l[1] *= 3;
+						l[5] *= 3;
+						l[2] *= 4;
+					} else if (mid[(i + 1) * x_size + j] < 8) {
+						l[7] = 0;
+						l[6] = 0;
+						l[8] = 0;
+						l[3] *= 2;
+						l[5] *= 2;
+						l[0] *= 3;
+						l[2] *= 3;
+						l[1] *= 4;
+					} else if (mid[(i + 1) * x_size + j + 1] < 8) {
+						l[8] = 0;
+						l[5] = 0;
+						l[7] = 0;
+						l[6] *= 2;
+						l[2] *= 2;
+						l[1] *= 3;
+						l[3] *= 3;
+						l[0] *= 4;
 					}
+	
 
 					m = 0; /* find the highest point */
 					for (y = 0; y < 3; y++)
@@ -886,6 +872,7 @@ susan_edges(in, r, mid, bp, max_no, x_size, y_size)
 }
 
 
+
 main(int argc, char *argv[])
 {
 	char filename[80], *tcp;
@@ -901,10 +888,8 @@ main(int argc, char *argv[])
 	r = (int *) malloc(x_size * y_size * sizeof(int));
 	setup_brightness_lut(&bp, 20, 6);
 
-
 	mid = (uchar *) malloc(x_size * y_size);
 	memset(mid, 100, x_size * y_size); /* note not set to zero */
-
 
 	susan_edges(in, r, mid, bp, max_no_edges, x_size, y_size);
 	susan_thin(r, mid, x_size, y_size);
