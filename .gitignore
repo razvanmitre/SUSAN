@@ -1,3 +1,6 @@
 large.pgm
 small.pgm
 out.pgm
+susan_omp
+susan_serial
+serial.pgm
