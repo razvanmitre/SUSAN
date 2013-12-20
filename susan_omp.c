@@ -865,11 +865,12 @@ main(int argc, char *argv[])
 		offset_up = 0, offset_down = 0;
 	uchar *image_chunk, *mid_chunk;
 
+	
+	omp_set_dynamic(0);
+	nthreads = atoi(argv[1]);
+	omp_set_num_threads(nthreads);
 
-	// nthreads = omp_get_num_threads();
-	nthreads = 4;
-
-	get_image(argv[1], &image, &x_size, &y_size);
+	get_image(argv[2], &image, &x_size, &y_size);
 	setup_brightness_lut(&bp, 20, 6);
 
 	printf("%d %d\n", nthreads, x_chunk_size);
@@ -921,7 +922,7 @@ main(int argc, char *argv[])
 	}
 
 
-	put_image(argv[2], image, x_size, y_size);
+	put_image(argv[3], image, x_size, y_size);
 }
 
 

@@ -1,0 +1,33 @@
+Author: Andra-Sabina Georgescu 342C1
+
+Pe parcursul implementarii programului paralelizat MPI nu am intampinat dificultati majore, intrucat problema alease se preta foarte bine unei astfel de paralelizari.
+
+Astfel, programul citeste o imagine pgm sub forma de matrice si efectueaza calcule asupra pixelilor, rezultand o imagine care evidentiaza muchiile din cea initiala. Intrucat fiecare pixel este calculat independent de ceilalti, am impartit imaginea, pe randuri, celor N procese, care efectueaza fiecare aceleasi calcule asupra portiunii din imagine care ii revine.
+
+Pentru imagini mici, nu se observa o imbunatatire semnificativa a timpului de rulare, intrucat timpul petrecut cu pasarea mesajelor este aproape echivalent cu timpul suplimentar de prelucrare. Totusi, cand dimensiunea imaginii creste considerabil, si diferentele in ceea ce priveste timpii de rulare devin mai notabile.
+
+In continuare, voi prezenta cateva teste, efectuate cu o aceeasi imagine de dimensiuni foarte mari, rulate pe coada ibm-opteron din cadrul clusterului pus la dispozitie de facultate.
+
+	1. Varianta seriala: 									real	2m6.696s
+															user	2m1.341s
+															sys	    0m1.208s
+
+	2. Varianta MPI cu 3 procese (1 master, 2 workeri)   : 	real	1m9.687s
+														 	user	3m11.791s
+														 	sys	    0m3.963s
+
+	3. Varianta MPI cu 5 procese (1 master, 4 workeri)   :	real	0m40.228s
+															user	2m51.403s
+															sys		0m1.524s
+
+	4. Varianta MPI cu 8 procese (1 master, 7 workeri)   :	real	0m36.376s
+															user	3m22.134s
+															sys		0m39.876s
+
+	5. Varianta MPI cu 16 procese (1 master, 15 workeri) :	real	0m18.686s
+															user	1m24.606s
+															sys		0m1.213s
+
+Dupa cum se observa, fata de varianta seriala, varianta MPI cu 16 procese ruleaza de aproximativ 7 ori mai rapid.
+
+
