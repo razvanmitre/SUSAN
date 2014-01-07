@@ -1,0 +1,58 @@
+Razvan Mitre 341C2
+
+
+Eu am realizat paralelizarea prim pthreads. Foloseste aceasi implementare ca si OpenMP
+
+Paralelizarea e facuta in felul urmator: La inceput, threadul principal
+citeste imaginea si o pregateste pentru procesare, apoi creaza threadurile.
+Fiecare thread primeste integral iamginea si calculeaza ce parte din ea trebuie 
+sa o proceseze pe baza numarului sau de thread. De asemenea fiecare thread ia
+in considerare o imaginea mai mare decat bucata sa, pentru a putea calcula 
+corect si la marginea imaginii. Aceste offset-uri le-am determinat prin teste.
+La final, imaginea este scrisa de thread-ul principal pe disk.
+
+Cea mai mare problema pe care am intampinat-o a fost ca atunci cand imparteam 
+imaginea fiecarui thread, o imparteam in parti egale, si rezultatul nu iesea la 
+fel ca imaginea seriala. Dupa ce am studiat algoritmul in detaliu, mi-am dat 
+seama ca nu e de ajuns ca fiecare thread sa lucreze cu parti egale a imaginii, 
+ci mai este nevoie de 5 randuri de pixeli pentru a se putea detecta toate 
+marginile din imaginii.
+
+Alte probleme nu am intampinat, algoritmul fiind potrivit pentru paralelizare.
+
+Programul primeste ca parametrii numarul de threaduri, imaginea de input si locatia 
+imaginii de output.
+
+Ca si teste am folosit 5 imagini de dimensiuni foarte mari (in jur de 100MPx).
+
+
+Pe coada ibm-opteron.q am obtinut: 
+
+serial: 2m 7.729s
+
+omp 2 threads:  1m 8.415s
+omp 4 threads:  0m 46.397s
+omp 8 threads:  0m 37.222s
+omp 16 threads: 0m 54.019s
+
+
+Pe coada ibm-nehalem.q am obtinut:
+
+serial: 1m 3.262s
+
+omp 2 threads:  0m 33.691s
+omp 4 threads:  0m 20.883s
+omp 8 threads:  0m 13.006s
+omp 16 threads: 0m 10.220s
+
+
+Pe coada ibm-quad.q am obtinut: 
+
+serial: 1m 34.197s
+
+omp 2 threads:  0m 48.905s
+omp 4 threads:  0m 30.002s
+omp 8 threads:  0m 18.979s
+omp 16 threads: 0m 17.007s
+
+

@@ -1,4 +1,4 @@
-all: serial mpi omp 
+all: serial mpi omp pth
 
 serial: susan.c
 	gcc susan.c -lm -o susan_serial
