@@ -10,7 +10,7 @@ omp: susan_omp.c
 	gcc -fopenmp susan_omp.c -lm -o susan_omp
 
 pth: susan_pth.c
-	gcc -o susan_pth susan_pth.c -lpthread
+	gcc susan_pth.c -lm -o susan_pth -lpthread
 
 clean:
 	rm susan_serial susan_mpi susan_omp

@@ -5,7 +5,7 @@
 #define MAX_CORNERS   15000  /* max corners per frame */
 
 
-#include <pthreads.h>
+#include <pthread.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -860,7 +860,7 @@ struct parameters {
 	int max_no_edges; 
 	uchar *bp;
 	int thread_id;
-}
+};
 
 
 void* susan(void *params)
@@ -878,12 +878,12 @@ void* susan(void *params)
 	y_chunk_size = (p->y_size % p->nthreads == 0) ? (p->y_size / p->nthreads) : (p->y_size / p->nthreads + 1);
 	x_chunk_size = p->x_size;
 
-	if(thread_id == 0)
+	if(p->thread_id == 0)
 	{
 		offset_up = 0;
 		offset_down = 8;
 	}
-	else if(thread_id == p->nthreads - 1)
+	else if(p->thread_id == p->nthreads - 1)
 	{
 		offset_up = 6;
 		offset_down = 0;
@@ -893,12 +893,12 @@ void* susan(void *params)
 		offset_up = 6;
 		offset_down = 8;	
 	}
-	printf("thread: %d\n", thread_id);
+	printf("thread: %d\n", p->thread_id);
 
 
 
 	image_chunk = (uchar *) malloc(x_chunk_size * (y_chunk_size + offset_up + offset_down));
-	memcpy(image_chunk, image + thread_id * y_chunk_size * p->x_size - offset_up * x_chunk_size, y_chunk_size * p->x_size + offset_down * x_chunk_size);
+	memcpy(image_chunk, image + p->thread_id * y_chunk_size * p->x_size - offset_up * x_chunk_size, y_chunk_size * p->x_size + offset_down * x_chunk_size);
 
 
 	y_chunk_size = y_chunk_size + offset_up + offset_down;
@@ -914,7 +914,7 @@ void* susan(void *params)
 	y_chunk_size = y_chunk_size - offset_up - offset_down;
 
 
-	memcpy(image + thread_id * y_chunk_size * p->x_size, image_chunk + offset_up * x_chunk_size, y_chunk_size * p->x_size);
+	memcpy(image + p->thread_id * y_chunk_size * p->x_size, image_chunk + offset_up * x_chunk_size, y_chunk_size * p->x_size);
 }
 
 
@@ -957,7 +957,7 @@ main(int argc, char *argv[])
 	printf("%d %d\n", nthreads, x_chunk_size);
 
 	for(i=0; i<nthreads; i++)
-		pthread_join(&threads[i], NULL);
+		pthread_join(threads[i], NULL);
 
 
 	put_image(argv[3], image, x_size, y_size);
