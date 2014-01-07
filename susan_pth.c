@@ -5,7 +5,7 @@
 #define MAX_CORNERS   15000  /* max corners per frame */
 
 
-#include <omp.h>
+#include <pthreads.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -17,7 +17,7 @@
 #define  FTOI(a) ( (a) < 0 ? ((int)(a-0.5)) : ((int)(a+0.5)) )
 typedef unsigned char uchar;
 
-
+uchar *image;
 
 int getint(fd)
 	FILE *fd; {
@@ -853,13 +853,78 @@ susan_edges(in, r, mid, bp, max_no, x_size, y_size)
 }
 
 
+struct parameters {
+	int nthreads; 
+	int x_size; 
+	int y_size; 
+	int max_no_edges; 
+	uchar *bp;
+	int thread_id;
+}
+
+
+void* susan(void *params)
+{
+	int *r_chunk;
+	uchar *image_chunk;
+	uchar *mid_chunk;
+	int offset_up;
+	int offset_down;
+	int x_chunk_size;
+	int y_chunk_size;
+
+	struct parameters* p = (struct parameters*) params;
+
+	y_chunk_size = (p->y_size % p->nthreads == 0) ? (p->y_size / p->nthreads) : (p->y_size / p->nthreads + 1);
+	x_chunk_size = p->x_size;
+
+	if(thread_id == 0)
+	{
+		offset_up = 0;
+		offset_down = 8;
+	}
+	else if(thread_id == p->nthreads - 1)
+	{
+		offset_up = 6;
+		offset_down = 0;
+	}
+	else
+	{
+		offset_up = 6;
+		offset_down = 8;	
+	}
+	printf("thread: %d\n", thread_id);
+
+
+
+	image_chunk = (uchar *) malloc(x_chunk_size * (y_chunk_size + offset_up + offset_down));
+	memcpy(image_chunk, image + thread_id * y_chunk_size * p->x_size - offset_up * x_chunk_size, y_chunk_size * p->x_size + offset_down * x_chunk_size);
+
+
+	y_chunk_size = y_chunk_size + offset_up + offset_down;
+
+	r_chunk = (int *) malloc(x_chunk_size * y_chunk_size * sizeof(int));
+	mid_chunk = (uchar *) malloc(x_chunk_size * y_chunk_size);
+	memset(mid_chunk, 100, x_chunk_size * y_chunk_size);
+
+	susan_edges(image_chunk, r_chunk, mid_chunk, p->bp, p->max_no_edges, x_chunk_size, y_chunk_size);
+	susan_thin(r_chunk, mid_chunk, x_chunk_size, y_chunk_size);
+	edge_draw(image_chunk, mid_chunk, x_chunk_size, y_chunk_size, 0);
+
+	y_chunk_size = y_chunk_size - offset_up - offset_down;
+
+
+	memcpy(image + thread_id * y_chunk_size * p->x_size, image_chunk + offset_up * x_chunk_size, y_chunk_size * p->x_size);
+}
+
+
 
 main(int argc, char *argv[])
 {
 	char filename[80];
-	uchar *image, *bp;
+	uchar *bp;
 	int max_no_edges = 2650, 
-		x_size,	y_size;
+		x_size,	y_size, i;
 
 	int thread_id, nthreads,
 		x_chunk_size, y_chunk_size,
@@ -868,60 +933,31 @@ main(int argc, char *argv[])
 	uchar *image_chunk, *mid_chunk;
 
 	
-	omp_set_dynamic(0);
 	nthreads = atoi(argv[1]);
-	omp_set_num_threads(nthreads);
+	pthread_t threads[16];
+	struct parameters params[16];
+
 
 	get_image(argv[2], &image, &x_size, &y_size);
 	setup_brightness_lut(&bp, 20, 6);
 
+	for(i=0; i<nthreads; i++)
+	{
+		params[i].nthreads = nthreads;
+		params[i].x_size = x_size;
+		params[i].y_size = y_size;
+		params[i].max_no_edges = max_no_edges;
+		params[i].bp = bp;
+		params[i].thread_id = i;
+	}
+
+	for(i=0; i<nthreads; i++)
+		pthread_create(&threads[i], NULL, susan, &params[i]);
+
 	printf("%d %d\n", nthreads, x_chunk_size);
 
-
-	#pragma omp parallel private(thread_id, r_chunk, image_chunk, mid_chunk, offset_up, offset_down, x_chunk_size, y_chunk_size) shared(nthreads, image, x_size, y_size, max_no_edges, bp)
-	{
-		thread_id = omp_get_thread_num();
-		y_chunk_size = (y_size % nthreads == 0) ? (y_size / nthreads) : (y_size / nthreads + 1);
-		x_chunk_size = x_size;
-
-		if(thread_id == 0)
-		{
-			offset_up = 0;
-			offset_down = 8;
-		}
-		else if(thread_id == nthreads - 1)
-		{
-			offset_up = 6;
-			offset_down = 0;
-		}
-		else
-		{
-			offset_up = 6;
-			offset_down = 8;	
-		}
-		printf("thread: %d\n", thread_id);
-
-
-
-		image_chunk = (uchar *) malloc(x_chunk_size * (y_chunk_size + offset_up + offset_down));
-		memcpy(image_chunk, image + thread_id * y_chunk_size * x_size - offset_up * x_chunk_size, y_chunk_size * x_size + offset_down * x_chunk_size);
-
-
-		y_chunk_size = y_chunk_size + offset_up + offset_down;
-
-		r_chunk = (int *) malloc(x_chunk_size * y_chunk_size * sizeof(int));
-		mid_chunk = (uchar *) malloc(x_chunk_size * y_chunk_size);
-		memset(mid_chunk, 100, x_chunk_size * y_chunk_size);
-
-		susan_edges(image_chunk, r_chunk, mid_chunk, bp, max_no_edges, x_chunk_size, y_chunk_size);
-		susan_thin(r_chunk, mid_chunk, x_chunk_size, y_chunk_size);
-		edge_draw(image_chunk, mid_chunk, x_chunk_size, y_chunk_size, 0);
-
-		y_chunk_size = y_chunk_size - offset_up - offset_down;
-
-
-		memcpy(image + thread_id * y_chunk_size * x_size, image_chunk + offset_up * x_chunk_size, y_chunk_size * x_size);
-	}
+	for(i=0; i<nthreads; i++)
+		pthread_join(&threads[i], NULL);
 
 
 	put_image(argv[3], image, x_size, y_size);
